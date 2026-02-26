@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casa Inteligente — Ecossistema de IA</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0F1A;
+    --surface: #141929;
+    --surface-2: #1C2237;
+    --border: rgba(255,255,255,0.06);
+    --text: #E8ECF4;
+    --text-dim: #8892A8;
+    --accent: #F9CA24;
+    --accent-glow: rgba(249,202,36,0.2);
+    --accent-2: #6C5CE7;
+    --accent-2-glow: rgba(108,92,231,0.2);
+    --accent-3: #00B894;
+    --accent-3-glow: rgba(0,184,148,0.2);
+    --accent-4: #E17055;
+    --accent-4-glow: rgba(225,112,85,0.2);
+    --accent-5: #74B9FF;
+    --accent-5-glow: rgba(116,185,255,0.2);
+    --accent-cadeira: #A29BFE;
+    --accent-cadeira-glow: rgba(162,155,254,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; z-index: 999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    background-size: 256px;
+  }
+
+  /* HEADER */
+  header {
+    padding: 3rem 4rem 2rem;
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute; bottom: 0; left: 4rem; right: 4rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .logo-line {
+    display: flex; align-items: center; gap: 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.75rem;
+  }
+  .logo-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+  h1 span { color: var(--accent); }
+  .subtitle { color: var(--text-dim); font-size: 1.05rem; margin-top: 0.5rem; max-width: 680px; }
+
+  /* TABS */
+  .tab-nav {
+    display: flex; padding: 2rem 4rem 0;
+    border-bottom: 1px solid var(--border);
+    gap: 0; overflow-x: auto;
+  }
+  .tab-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; position: relative;
+    transition: color 0.3s; white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 2px; background: var(--accent);
+    border-radius: 2px 2px 0 0;
+  }
+
+  /* SECTIONS */
+  .section { display: none; padding: 2.5rem 4rem 4rem; }
+  .section.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .section-heading { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .section-desc { font-size: 0.92rem; color: var(--text-dim); margin-bottom: 2rem; max-width: 680px; line-height: 1.65; }
+
+  /* INTRO BOX */
+  .intro-box {
+    background: linear-gradient(135deg, rgba(249,202,36,0.07), rgba(108,92,231,0.07));
+    border: 1px solid rgba(249,202,36,0.2);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2.5rem;
+    display: flex; gap: 1.5rem; align-items: flex-start;
+  }
+  .intro-icon { font-size: 2.5rem; flex-shrink: 0; }
+  .intro-text h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--accent); }
+  .intro-text p { font-size: 0.9rem; color: var(--text-dim); line-height: 1.7; }
+
+  /* AGENT CARDS GRID */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+  .agent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .agent-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; border-radius: 16px 16px 0 0;
+  }
+  .agent-card:hover { transform: translateY(-4px); }
+
+  .agent-card.energia::before { background: var(--accent); }
+  .agent-card.energia:hover { box-shadow: 0 12px 40px var(--accent-glow); }
+  .agent-card.conforto::before { background: var(--accent-5); }
+  .agent-card.conforto:hover { box-shadow: 0 12px 40px var(--accent-5-glow); }
+  .agent-card.seguranca::before { background: var(--accent-4); }
+  .agent-card.seguranca:hover { box-shadow: 0 12px 40px var(--accent-4-glow); }
+  .agent-card.rotina::before { background: var(--accent-3); }
+  .agent-card.rotina:hover { box-shadow: 0 12px 40px var(--accent-3-glow); }
+  .agent-card.compras::before { background: #fd79a8; }
+  .agent-card.compras:hover { box-shadow: 0 12px 40px rgba(253,121,168,0.2); }
+  .agent-card.manutencao::before { background: var(--accent-2); }
+  .agent-card.manutencao:hover { box-shadow: 0 12px 40px var(--accent-2-glow); }
+  .agent-card.cyber::before { background: #55efc4; }
+  .agent-card.cyber:hover { box-shadow: 0 12px 40px rgba(85,239,196,0.2); }
+  .agent-card.orquestrador::before { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .agent-card.orquestrador:hover { box-shadow: 0 12px 40px rgba(255,255,255,0.05); }
+
+  .agent-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .agent-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .agent-tagline {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-dim); margin-bottom: 0.85rem;
+  }
+  .agent-desc { font-size: 0.87rem; color: var(--text-dim); line-height: 1.65; margin-bottom: 1rem; }
+  .agent-examples {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  }
+  .agent-examples p {
+    font-size: 0.78rem; color: var(--text-dim); line-height: 1.6;
+  }
+  .agent-examples strong { color: var(--text); }
+
+  .energia .agent-name { color: var(--accent); }
+  .conforto .agent-name { color: var(--accent-5); }
+  .seguranca .agent-name { color: var(--accent-4); }
+  .rotina .agent-name { color: var(--accent-3); }
+  .compras .agent-name { color: #fd79a8; }
+  .manutencao .agent-name { color: var(--accent-2); }
+  .cyber .agent-name { color: #55efc4; }
+  .orquestrador .agent-name { color: var(--text); }
+
+  /* CONFLICT BOX */
+  .conflict-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    margin-top: 0.5rem;
+  }
+  .conflict-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .conflict-box p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.7; }
+  .conflict-steps {
+    display: flex; gap: 0; margin-top: 1.5rem; flex-wrap: wrap;
+  }
+  .c-step {
+    flex: 1; min-width: 140px;
+    text-align: center;
+    padding: 1rem;
+    position: relative;
+  }
+  .c-step::after {
+    content: '→'; position: absolute; right: -6px; top: 50%;
+    transform: translateY(-50%); color: var(--text-dim); opacity: 0.4; font-size: 1.2rem;
+  }
+  .c-step:last-child::after { display: none; }
+  .c-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 0.6rem; font-size: 1.3rem;
+  }
+  .c-label { font-size: 0.8rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .c-detail { font-size: 0.7rem; color: var(--text-dim); line-height: 1.4; }
+
+  /* FLOW (DIA NA VIDA) */
+  .dia-timeline {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+  }
+  .dia-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .dia-sub { font-size: 0.83rem; color: var(--text-dim); margin-bottom: 2rem; }
+
+  .timeline-items { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .timeline-items::before {
+    content: ''; position: absolute; left: 22px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(180deg, var(--accent), var(--accent-2), var(--accent-3), var(--accent-4));
+    border-radius: 2px;
+  }
+  .t-item {
+    display: flex; gap: 1.5rem; padding: 0.9rem 0; position: relative;
+  }
+  .t-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; color: var(--accent);
+    min-width: 45px; padding-top: 0.15rem;
+    text-align: right; flex-shrink: 0;
+  }
+  .t-dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 0.1rem;
+    border: 3px solid var(--bg); z-index: 2;
+  }
+  .t-content { flex: 1; }
+  .t-who { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.2rem; }
+  .t-what { font-size: 0.85rem; color: var(--text-dim); line-height: 1.55; }
+  .t-what strong { color: var(--text); }
+
+  /* CADEIRANTE SECTION */
+  .cadeirante-hero {
+    background: linear-gradient(135deg, rgba(162,155,254,0.08), rgba(108,92,231,0.05));
+    border: 1px solid rgba(162,155,254,0.2);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2.5rem;
+    display: flex; gap: 1.5rem; align-items: flex-start;
+  }
+  .cadeirante-hero .intro-icon { font-size: 3rem; }
+  .cadeirante-hero h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--accent-cadeira); }
+  .cadeirante-hero p { font-size: 0.9rem; color: var(--text-dim); line-height: 1.7; }
+
+  .plus-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+  .plus-card {
+    background: var(--surface);
+    border: 1px solid rgba(162,155,254,0.15);
+    border-radius: 16px;
+    padding: 1.75rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .plus-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; border-radius: 16px 16px 0 0;
+    background: var(--accent-cadeira);
+  }
+  .plus-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px var(--accent-cadeira-glow);
+  }
+  .plus-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .plus-name { font-size: 1rem; font-weight: 700; color: var(--accent-cadeira); margin-bottom: 0.2rem; }
+  .plus-tagline {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-dim); margin-bottom: 0.85rem;
+  }
+  .plus-desc { font-size: 0.87rem; color: var(--text-dim); line-height: 1.65; margin-bottom: 1rem; }
+  .plus-example {
+    background: rgba(162,155,254,0.07);
+    border: 1px solid rgba(162,155,254,0.15);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.78rem; color: var(--text-dim); line-height: 1.6;
+  }
+  .plus-example strong { color: var(--accent-cadeira); }
+
+  /* COMO FUNCIONA VISUALLY */
+  .como-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .como-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    transition: transform 0.3s;
+  }
+  .como-card:hover { transform: translateY(-3px); }
+  .como-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; color: var(--text-dim);
+    letter-spacing: 0.1em; margin-bottom: 0.75rem;
+  }
+  .como-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+  .como-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .como-desc { font-size: 0.78rem; color: var(--text-dim); line-height: 1.55; }
+
+  /* ANALOGIA */
+  .analogia-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 2rem;
+  }
+  .analogia-box h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--accent); }
+  .analogia-box p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.7; }
+
+  /* PRIVACY BOX */
+  .privacy-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-4);
+    border-radius: 12px;
+    padding: 1.75rem 2rem;
+    margin-top: 2rem;
+  }
+  .privacy-box h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--accent-4); }
+  .privacy-box p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.7; }
+
+  @media (max-width: 900px) {
+    header, .tab-nav, .section { padding-left: 1.5rem; padding-right: 1.5rem; }
+    h1 { font-size: 1.8rem; }
+    .intro-box { flex-direction: column; }
+    .cadeirante-hero { flex-direction: column; }
+    .conflict-steps { flex-direction: column; }
+    .c-step::after { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <div class="logo-line">
+    <div class="logo-dot"></div>
+    <span>Ecossistema de IA — Casa Inteligente</span>
+  </div>
+  <h1>A sua casa que <span>pensa por você</span></h1>
+  <p class="subtitle">Como um conjunto de inteligências artificiais pode trabalhar em equipe para tornar sua casa mais segura, econômica e confortável — sem que você precise fazer nada.</p>
+  <br>
+  <h2>Agentes, Rotinas & Recursos de Acessibilidade</h2>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="overview">O que é isso?</button>
+  <button class="tab-btn" data-tab="agentes">Os Agentes</button>
+  <button class="tab-btn" data-tab="dia">Um dia na vida</button>
+  <button class="tab-btn" data-tab="cadeirante">♿ Para Cadeirantes</button>
+</nav>
+
+<!-- ========== O QUE É ISSO ========== -->
+<section class="section active" id="overview">
+
+  <div class="intro-box">
+    <div class="intro-icon">🏠</div>
+    <div class="intro-text">
+      <h2>Imagine uma casa que te conhece</h2>
+      <p>Uma casa inteligente com IA não é apenas um controle remoto sofisticado. É um conjunto de "assistentes invisíveis" — cada um responsável por uma área da casa — que conversam entre si, aprendem seus hábitos e tomam pequenas decisões automaticamente para que você não precise se preocupar com elas. Você mora. Eles cuidam.</p>
+    </div>
+  </div>
+
+  <div class="section-heading">Como funciona na prática?</div>
+  <p class="section-desc">Em vez de uma única IA que tenta fazer tudo, usamos vários agentes especializados — como uma equipe de funcionários, cada um expert no seu trabalho.</p>
+
+  <div class="como-grid">
+    <div class="como-card">
+      <div class="como-num">PASSO 01</div>
+      <div class="como-icon">👁️</div>
+      <div class="como-title">Percebe</div>
+      <div class="como-desc">Sensores, câmeras e dispositivos captam o que está acontecendo na casa em tempo real</div>
+    </div>
+    <div class="como-card">
+      <div class="como-num">PASSO 02</div>
+      <div class="como-icon">🧠</div>
+      <div class="como-title">Pensa</div>
+      <div class="como-desc">Cada agente analisa as informações da sua área e decide o que fazer — ou se precisa consultar outro agente</div>
+    </div>
+    <div class="como-card">
+      <div class="como-num">PASSO 03</div>
+      <div class="como-icon">🤝</div>
+      <div class="como-title">Conversa</div>
+      <div class="como-desc">Os agentes se comunicam entre si para evitar conflitos — como ligar o ar e economizar energia ao mesmo tempo</div>
+    </div>
+    <div class="como-card">
+      <div class="como-num">PASSO 04</div>
+      <div class="como-icon">⚙️</div>
+      <div class="como-title">Age</div>
+      <div class="como-desc">Executa a melhor decisão — ajusta a temperatura, apaga uma luz, trava a porta, avisa sobre um produto no fim</div>
+    </div>
+    <div class="como-card">
+      <div class="como-num">PASSO 05</div>
+      <div class="como-icon">📈</div>
+      <div class="como-title">Aprende</div>
+      <div class="como-desc">Com o tempo, aprende suas preferências e melhora as decisões. Quanto mais você usa, mais inteligente fica</div>
+    </div>
+  </div>
+
+  <div class="analogia-box">
+    <h3>💡 Analogia simples</h3>
+    <p>Pense na sua casa como um condomínio de luxo. Há um porteiro (segurança), um zelador (manutenção), um mordomo (rotina), um administrador financeiro (energia), um gerente de estoque (compras) e um gerente geral (orquestrador) que coordena todos. Cada um tem sua especialidade, mas todos trabalham juntos pelo mesmo objetivo: seu conforto e segurança. A diferença é que esses "funcionários" nunca dormem, nunca faltam e nunca pedem aumento.</p>
+  </div>
+
+  <!-- CONFLITO -->
+  <div class="conflict-box">
+    <h3>🔄 O momento mais interessante: quando os agentes discordam</h3>
+    <p style="margin-bottom:1.5rem">Quando dois agentes querem coisas opostas, um terceiro — o Orquestrador — entra em cena para tomar a melhor decisão considerando o contexto todo. Veja um exemplo real:</p>
+    <div class="conflict-steps">
+      <div class="c-step">
+        <div class="c-icon" style="background:rgba(116,185,255,0.12);border:1px solid rgba(116,185,255,0.3);">🌡️</div>
+        <div class="c-label" style="color:var(--accent-5)">Agente Conforto</div>
+        <div class="c-detail">Detecta 29°C no quarto e quer ligar o ar-condicionado</div>
+      </div>
+      <div class="c-step">
+        <div class="c-icon" style="background:rgba(249,202,36,0.12);border:1px solid rgba(249,202,36,0.3);">⚡</div>
+        <div class="c-label" style="color:var(--accent)">Agente Energia</div>
+        <div class="c-detail">Detecta horário de pico: conta de luz está cara agora</div>
+      </div>
+      <div class="c-step">
+        <div class="c-icon" style="background:rgba(0,184,148,0.12);border:1px solid rgba(0,184,148,0.3);">📅</div>
+        <div class="c-label" style="color:var(--accent-3)">Agente Rotina</div>
+        <div class="c-detail">Sabe que você chega em casa daqui a 50 minutos</div>
+      </div>
+      <div class="c-step">
+        <div class="c-icon" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);">⚖️</div>
+        <div class="c-label">Orquestrador</div>
+        <div class="c-detail">Combina tudo: liga o ar daqui a 30 min, quando a tarifa cair</div>
+      </div>
+      <div class="c-step">
+        <div class="c-icon" style="background:rgba(225,112,85,0.12);border:1px solid rgba(225,112,85,0.3);">😊</div>
+        <div class="c-label" style="color:var(--accent-4)">Resultado</div>
+        <div class="c-detail">Casa na temperatura certa quando você chega, gastando menos</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="privacy-box">
+    <h3>🔒 E a minha privacidade?</h3>
+    <p>Todos os dados do sistema ficam armazenados localmente na sua casa, em um servidor doméstico. Nada precisa ir para a nuvem. Você tem controle total: pode desativar qualquer agente, ver o histórico de decisões e definir limites — como "nunca grave áudio" ou "nunca compartilhe minha localização". A IA trabalha para você, não para empresas.</p>
+  </div>
+
+</section>
+
+<!-- ========== OS AGENTES ========== -->
+<section class="section" id="agentes">
+  <div class="section-heading">Conheça cada agente da sua casa</div>
+  <p class="section-desc">São 8 agentes no total. Cada um tem uma especialidade, mas todos se comunicam. Você pode ter todos ou só os que precisar.</p>
+
+  <div class="agents-grid">
+
+    <div class="agent-card energia">
+      <div class="agent-icon">⚡</div>
+      <div class="agent-name">Agente de Energia</div>
+      <div class="agent-tagline">Economista da casa</div>
+      <div class="agent-desc">Monitora o consumo de cada aparelho em tempo real e sabe exatamente o que está gastando mais. Desliga automaticamente o que ficou ligado sem precisar, e aprende os melhores horários para usar aparelhos pesados — como máquina de lavar — quando a tarifa elétrica está mais barata.</div>
+      <div class="agent-examples">
+        <p><strong>Exemplo do dia a dia:</strong> Você foi dormir e esqueceu a TV ligada. O agente percebe que não há movimento na sala há 20 minutos e desliga sozinho. No fim do mês, a conta de luz é até 20% menor.</p>
+      </div>
+    </div>
+
+    <div class="agent-card conforto">
+      <div class="agent-icon">🌡️</div>
+      <div class="agent-name">Agente de Conforto</div>
+      <div class="agent-tagline">Mestre do bem-estar</div>
+      <div class="agent-desc">Cuida da temperatura, iluminação e ventilação de cada cômodo. Aprende que você gosta de dormir com 22°C, que a sala fica muito quente às 14h e que você prefere luz mais amarela à noite. Ajusta tudo sem que você precise mexer em nada.</div>
+      <div class="agent-examples">
+        <p><strong>Exemplo do dia a dia:</strong> Você entra no banheiro às 6h30. Antes mesmo de pedir, a luz já acendeu no brilho certo para de manhã e o chuveiro já começou a aquecer.</p>
+      </div>
+    </div>
+
+    <div class="agent-card seguranca">
+      <div class="agent-icon">🔐</div>
+      <div class="agent-name">Agente de Segurança</div>
+      <div class="agent-tagline">Guarda 24 horas</div>
+      <div class="agent-desc">Monitora câmeras, sensores de porta e janela, e detecta movimentos incomuns. A parte inteligente: ele aprende a distinguir um familiar chegando de um estranho, e diferencia um ladrão de um gato no quintal. Só aciona alarme quando há motivo real.</div>
+      <div class="agent-examples">
+        <p><strong>Exemplo do dia a dia:</strong> Sua filha chega às 18h, como sempre. O agente a reconhece e abre a porta automaticamente. Às 2h da manhã, detecta movimento no jardim — verifica a câmera, identifica que é um animal e não dispara alarme.</p>
+      </div>
+    </div>
+
+    <div class="agent-card rotina">
+      <div class="agent-icon">📅</div>
+      <div class="agent-name">Agente de Rotina</div>
+      <div class="agent-tagline">Mordomo invisível</div>
+      <div class="agent-desc">Aprende seus hábitos ao longo do tempo e antecipa o que você vai precisar. Sabe que às sextas você chega mais tarde, que no inverno você toma banho mais quente e que no domingo você dorme mais. Prepara a casa para cada momento sem que você precise pedir.</div>
+      <div class="agent-examples">
+        <p><strong>Exemplo do dia a dia:</strong> Toda manhã, 10 minutos antes de você acordar, as persianas abrem devagar, a cafeteira liga e o rádio toca no volume baixo. Tudo sem alarme, tudo sem app.</p>
+      </div>
+    </div>
+
+    <div class="agent-card compras">
+      <div class="agent-icon">🛒</div>
+      <div class="agent-name">Agente de Compras</div>
+      <div class="agent-tagline">Despensa que pensa</div>
+      <div class="agent-desc">Monitora o estoque da geladeira e da despensa usando câmeras ou sensores de peso. Quando um produto está acabando, adiciona à lista de compras no seu celular. Se autorizado, pode até fazer o pedido direto no supermercado online.</div>
+      <div class="agent-examples">
+        <p><strong>Exemplo do dia a dia:</strong> Na quinta-feira, você recebe uma notificação: "Leite acaba hoje, café acabou ontem. Lista de compras atualizada para o fim de semana." Você nunca mais abre a geladeira e descobre que não tem nada.</p>
+      </div>
+    </div>
+
+    <div class="agent-card manutencao">
+      <div class="agent-icon">🔧</div>
+      <div class="agent-name">Agente de Manutenção</div>
+      <div class="agent-tagline">Zelador preventivo</div>
+      <div class="agent-desc">Monitora o funcionamento dos eletrodomésticos e detecta sinais de desgaste antes da quebra. Um motor do ar-condicionado trabalhando mais do que o normal, uma geladeira consumindo mais energia que o habitual — o agente identifica e avisa antes do problema.</div>
+      <div class="agent-examples">
+        <p><strong>Exemplo do dia a dia:</strong> O agente detecta que a máquina de lavar está vibrando 30% mais do que o normal há 3 dias. Você recebe um aviso: "Possível desequilíbrio na máquina. Considere chamar um técnico antes que vire um conserto maior."</p>
+      </div>
+    </div>
+
+    <div class="agent-card cyber">
+      <div class="agent-icon">🛡️</div>
+      <div class="agent-name">Agente de Cibersegurança</div>
+      <div class="agent-tagline">Guarda digital da casa</div>
+      <div class="agent-desc">Protege todos os dispositivos conectados à sua rede Wi-Fi. Monitora se algum aparelho está se comunicando com lugares suspeitos — uma câmera que manda dados para servidores desconhecidos, por exemplo. Se detectar algo estranho, isola o dispositivo e te avisa.</div>
+      <div class="agent-examples">
+        <p><strong>Exemplo do dia a dia:</strong> Às 3h da manhã, sua smart TV começa a enviar dados para um servidor desconhecido. O agente bloqueia a comunicação, desconecta a TV da internet e te manda um aviso pela manhã com a explicação do que aconteceu.</p>
+      </div>
+    </div>
+
+    <div class="agent-card orquestrador">
+      <div class="agent-icon">🕸️</div>
+      <div class="agent-name">O Orquestrador</div>
+      <div class="agent-tagline">O gerente geral</div>
+      <div class="agent-desc">O único agente que enxerga todos os outros ao mesmo tempo. Quando dois agentes querem coisas diferentes — como ligar o ar e economizar energia — ele avalia o contexto completo e toma a decisão mais equilibrada. É o árbitro invisível que mantém tudo funcionando em harmonia.</div>
+      <div class="agent-examples">
+        <p><strong>Exemplo do dia a dia:</strong> Você sai de casa às 8h. O Orquestrador coordena: apaga todas as luzes, desliga o ar, arma o sistema de segurança, pausa a lista de compras e coloca a casa em modo de baixo consumo — tudo ao mesmo tempo, em 3 segundos.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========== UM DIA NA VIDA ========== -->
+<section class="section" id="dia">
+  <div class="section-heading">Um dia completo com a casa inteligente</div>
+  <p class="section-desc">Veja como os agentes trabalham em silêncio durante um dia típico — sem que você precise fazer nada além de viver.</p>
+
+  <div class="dia-timeline">
+    <div class="dia-title">⏰ Da manhã à noite — tudo automático</div>
+    <div class="dia-sub">Moradora fictícia: Ana, 38 anos, trabalha fora, tem 2 filhos e um cachorro.</div>
+
+    <div class="timeline-items">
+
+      <div class="t-item">
+        <div class="t-time">06:20</div>
+        <div class="t-dot" style="background:var(--accent)"></div>
+        <div class="t-content">
+          <div class="t-who" style="color:var(--accent)">🌅 Agente de Rotina</div>
+          <div class="t-what">Percebe que o despertador da Ana toca em 10 minutos. <strong>Abre as persianas do quarto devagar</strong>, regula a temperatura para 23°C e liga a cafeteira.</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-time">06:30</div>
+        <div class="t-dot" style="background:var(--accent-5)"></div>
+        <div class="t-content">
+          <div class="t-who" style="color:var(--accent-5)">🚿 Agente de Conforto</div>
+          <div class="t-what">Ana entra no banheiro. O agente detecta presença e <strong>ajusta a luz para claridade de manhã</strong>. O chuveiro elétrico já está na temperatura preferida dela: 38°C.</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-time">07:15</div>
+        <div class="t-dot" style="background:var(--accent-3)"></div>
+        <div class="t-content">
+          <div class="t-who" style="color:var(--accent-3)">🛒 Agente de Compras</div>
+          <div class="t-what">Ana abre a geladeira. A câmera interna detecta que o leite acabou. <strong>Notificação no celular:</strong> "Leite adicionado à lista. Quer pedir delivery para hoje à tarde?"</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-time">08:00</div>
+        <div class="t-dot" style="background:var(--text-dim)"></div>
+        <div class="t-content">
+          <div class="t-who" style="color:var(--text)">🕸️ Orquestrador</div>
+          <div class="t-what">Ana sai de casa. O Orquestrador coordena todos os agentes: <strong>luzes apagadas, ar desligado, alarme ativado, casa em modo econômico.</strong> Tudo em 3 segundos.</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-time">11:40</div>
+        <div class="t-dot" style="background:var(--accent-4)"></div>
+        <div class="t-content">
+          <div class="t-who" style="color:var(--accent-4)">🔐 Agente de Segurança</div>
+          <div class="t-what">Detecta movimento no quintal. Verifica a câmera e identifica: é o cachorro. <strong>Nenhum alarme.</strong> Registra o evento no histórico.</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-time">13:00</div>
+        <div class="t-dot" style="background:var(--accent-2)"></div>
+        <div class="t-content">
+          <div class="t-who" style="color:var(--accent-2)">🔧 Agente de Manutenção</div>
+          <div class="t-what">Identifica que o ar-condicionado do quarto está consumindo 15% mais energia que o normal nos últimos 5 dias. <strong>Envia alerta:</strong> "Filtro possivelmente sujo. Limpeza recomendada."</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-time">17:30</div>
+        <div class="t-dot" style="background:var(--accent-3)"></div>
+        <div class="t-content">
+          <div class="t-who" style="color:var(--accent-3)">📅 Agente de Rotina</div>
+          <div class="t-what">GPS do celular da Ana indica que ela está a 10 minutos de casa. O agente <strong>liga o ar-condicionado da sala, acende luzes na entrada</strong> e destrava a porta automaticamente quando ela chega.</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-time">22:30</div>
+        <div class="t-dot" style="background:var(--accent-5)"></div>
+        <div class="t-content">
+          <div class="t-who" style="color:var(--accent-5)">🌙 Agente de Conforto</div>
+          <div class="t-what">Detecta que não há movimento na casa há 15 minutos. <strong>Reduz a iluminação, regula a temperatura para o modo noturno</strong> (20°C) e ativa o modo silencioso nos dispositivos.</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-time">03:12</div>
+        <div class="t-dot" style="background:#55efc4"></div>
+        <div class="t-content">
+          <div class="t-who" style="color:#55efc4">🛡️ Agente de Cibersegurança</div>
+          <div class="t-what">A smart TV tenta acessar um domínio desconhecido. <strong>Bloqueio automático.</strong> Registro feito. Ana verá o aviso pela manhã com a explicação completa.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="analogia-box">
+    <h3>✅ O que Ana precisou fazer durante esse dia todo?</h3>
+    <p>Absolutamente nada relacionado à casa. Ela não mexeu em nenhum app, não ativou nenhum modo, não se preocupou com nada. A casa cuidou de si mesma — e dela — enquanto ela simplesmente viveu o dia. Esse é o verdadeiro objetivo de uma casa inteligente com múltiplos agentes: <strong style="color:var(--text)">sair do caminho e deixar você viver.</strong></p>
+  </div>
+
+</section>
+
+<!-- ========== CADEIRANTE ========== -->
+<section class="section" id="cadeirante">
+
+  <div class="cadeirante-hero">
+    <div class="intro-icon">♿</div>
+    <div>
+      <h2>Casa Inteligente para Pessoas Cadeirantes</h2>
+      <p>Os agentes básicos da casa já ajudam qualquer pessoa. Mas para quem usa cadeira de rodas, existem funcionalidades extras que fazem uma diferença enorme no dia a dia — transformando a casa num ambiente verdadeiramente independente. Esses "plus" não são luxo: são autonomia.</p>
+    </div>
+  </div>
+
+  <div class="section-heading" style="margin-bottom:0.35rem">Funcionalidades extras pensadas para cadeirantes</div>
+  <p class="section-desc">Cada plus foi projetado para resolver um problema real de mobilidade, segurança ou independência dentro de casa.</p>
+
+  <div class="plus-grid">
+
+    <div class="plus-card">
+      <div class="plus-icon">🚪</div>
+      <div class="plus-name">Portas e Passagens Automáticas</div>
+      <div class="plus-tagline">Mobilidade sem obstáculos</div>
+      <div class="plus-desc">O agente de segurança e o agente de conforto se integram para detectar a aproximação da cadeira de rodas (por sensor ou reconhecimento) e abrir portas automaticamente — sem precisar de força, alcance ou botão. Funciona em todas as portas internas e externas.</div>
+      <div class="plus-example">
+        <strong>Situação real:</strong> Você vem do banheiro com as mãos ocupadas. A porta do quarto já está aberta quando você chega. Não precisa parar, virar, puxar nada.
+      </div>
+    </div>
+
+    <div class="plus-card">
+      <div class="plus-icon">🎙️</div>
+      <div class="plus-name">Controle Total por Voz</div>
+      <div class="plus-tagline">A voz como controle remoto universal</div>
+      <div class="plus-desc">Todos os agentes da casa respondem a comandos de voz — sem precisar de celular, controle ou app. Liga o ventilador, chama o elevador residencial, tranca a porta, pede comida, ajusta a temperatura. Tudo pelo que você fala, onde quer que esteja na casa.</div>
+      <div class="plus-example">
+        <strong>Situação real:</strong> Você está na cama, cansado. Diz "apaga as luzes e fecha as persianas." Feito. Sem precisar alcançar nada, se mover ou pegar o celular.
+      </div>
+    </div>
+
+    <div class="plus-card">
+      <div class="plus-icon">🛗</div>
+      <div class="plus-name">Integração com Elevador e Plataforma</div>
+      <div class="plus-tagline">Transição de andares sem esforço</div>
+      <div class="plus-desc">O agente de rotina aprende quando e como você usa o elevador ou plataforma elevatória da casa. Chama automaticamente quando detecta sua aproximação, ajusta a velocidade conforme sua preferência e garante que a plataforma esteja sempre no nível certo quando você precisa.</div>
+      <div class="plus-example">
+        <strong>Situação real:</strong> Você sai do quarto no andar de cima. Antes de chegar no corredor, o elevador já está esperando com a porta aberta. Nenhum botão pressionado.
+      </div>
+    </div>
+
+    <div class="plus-card">
+      <div class="plus-icon">⚠️</div>
+      <div class="plus-name">Detecção de Quedas e Emergências</div>
+      <div class="plus-tagline">Segurança que vê o que você não consegue prever</div>
+      <div class="plus-desc">O agente de segurança usa câmeras com visão computacional para detectar quedas ou posições de imobilidade fora do comum. Se identificar algo, tenta contato por voz primeiro, e — se não houver resposta — aciona automaticamente um familiar ou serviço de emergência configurado por você.</div>
+      <div class="plus-example">
+        <strong>Situação real:</strong> Transferência para a cama deu errado e você caiu. A casa percebe em 8 segundos, pergunta se você está bem. Sem resposta, liga para seu cuidador e informa a localização exata dentro da casa.
+      </div>
+    </div>
+
+    <div class="plus-card">
+      <div class="plus-icon">🛁</div>
+      <div class="plus-name">Banheiro Adaptado Inteligente</div>
+      <div class="plus-tagline">O cômodo mais crítico, totalmente assistido</div>
+      <div class="plus-desc">Integra barras de apoio inteligentes com sensores de pressão, chuveiro com temperatura pré-configurada ativada por voz, piso com sensor de presença e espelho com display de informações. O agente de conforto garante que tudo esteja pronto antes mesmo de você entrar.</div>
+      <div class="plus-example">
+        <strong>Situação real:</strong> Você diz "preparar o banho." O chuveiro já está na temperatura certa, as luzes no modo brilhante, a porta aberta e a barra lateral iluminada quando você entra.
+      </div>
+    </div>
+
+    <div class="plus-card">
+      <div class="plus-icon">📱</div>
+      <div class="plus-name">Painel de Controle Acessível</div>
+      <div class="plus-tagline">Tudo visível, tudo controlável</div>
+      <div class="plus-desc">Um painel dedicado — em tablet fixado na cadeira ou na parede em altura acessível — mostra o estado de toda a casa de forma visual e simples. Ícones grandes, contraste alto, compatível com switches adaptativos para quem tem mobilidade reduzida nas mãos também.</div>
+      <div class="plus-example">
+        <strong>Situação real:</strong> Com um único toque no painel — ou um sopro em um switch — você controla luzes, temperatura, segurança e pedido de ajuda. Tudo na mesma tela, sem precisar navegar em menus.
+      </div>
+    </div>
+
+    <div class="plus-card">
+      <div class="plus-icon">🔔</div>
+      <div class="plus-name">Alertas Visuais e Táteis</div>
+      <div class="plus-tagline">Para quem também tem deficiência auditiva</div>
+      <div class="plus-desc">Para cadeirantes que também têm deficiência auditiva, todos os alertas sonoros da casa se transformam em avisos visuais (luzes piscando em padrão específico) e táteis (vibração no painel ou dispositivo vestível). Campainha, alarme de incêndio, aviso de segurança — tudo chega de forma que você perceba.</div>
+      <div class="plus-example">
+        <strong>Situação real:</strong> Alguém toca a campainha. As luzes da sala piscam 3 vezes em amarelo. Você olha para o painel e vê a câmera da entrada mostrando quem é — sem precisar ouvir nada.
+      </div>
+    </div>
+
+    <div class="plus-card">
+      <div class="plus-icon">🧑‍⚕️</div>
+      <div class="plus-name">Monitoramento de Saúde Integrado</div>
+      <div class="plus-tagline">A casa como parceira da sua saúde</div>
+      <div class="plus-desc">Integração com dispositivos wearable (pulseiras, monitores) para acompanhar frequência cardíaca, pressão e outros sinais. O agente de rotina pode lembrar de medicamentos em horários específicos, acionar avisos se parâmetros vitais saírem da faixa normal e registrar um histórico para compartilhar com médicos.</div>
+      <div class="plus-example">
+        <strong>Situação real:</strong> São 14h e você esqueceu o remédio. A casa avisa por voz e pelo painel. Se você não confirmar que tomou em 15 minutos, avisa também o familiar de contato.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="privacy-box" style="border-color: var(--accent-cadeira);">
+    <h3 style="color:var(--accent-cadeira)">💜 O princípio mais importante</h3>
+    <p>Toda funcionalidade extra para cadeirantes foi pensada com um único objetivo: <strong style="color:var(--text)">ampliar a independência, não criar dependência da tecnologia.</strong> O sistema se adapta a você — não o contrário. Se a câmera de detecção de quedas incomoda sua privacidade, desligue. Se o controle por voz não funciona bem num dia ruim, o painel físico está lá. A casa inteligente deve ser uma escolha que liberta, nunca uma obrigação que prende.</p>
+  </div>
+
+</section>
+
+<script>
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
