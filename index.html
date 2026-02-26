@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedAI — Ecossistema IA Hospitalar</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0F1A;
+    --surface: #141929;
+    --surface-2: #1C2237;
+    --border: rgba(255,255,255,0.06);
+    --text: #E8ECF4;
+    --text-dim: #8892A8;
+    --accent-brain: #6C5CE7;
+    --accent-brain-glow: rgba(108,92,231,0.25);
+    --accent-arms: #00B894;
+    --accent-arms-glow: rgba(0,184,148,0.25);
+    --accent-memory: #FDCB6E;
+    --accent-memory-glow: rgba(253,203,110,0.25);
+    --accent-human: #E17055;
+    --accent-human-glow: rgba(225,112,85,0.25);
+    --accent-erp: #0984E3;
+    --accent-erp-glow: rgba(9,132,227,0.25);
+    --accent-pink: #FD79A8;
+    --accent-pink-glow: rgba(253,121,168,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; z-index: 999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    background-size: 256px;
+  }
+
+  header {
+    padding: 3rem 4rem 2rem;
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute; bottom: 0; left: 4rem; right: 4rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .logo-line {
+    display: flex; align-items: center; gap: 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.75rem;
+  }
+  .logo-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent-pink);
+    box-shadow: 0 0 12px var(--accent-pink-glow);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+  }
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  h1 span { color: var(--accent-pink); }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    margin-top: 0.5rem;
+    max-width: 700px;
+  }
+
+  /* TAB NAV */
+  .tab-nav {
+    display: flex; gap: 0; padding: 2rem 4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; position: relative;
+    transition: color 0.3s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 2px; background: var(--accent-pink);
+    border-radius: 2px 2px 0 0;
+  }
+
+  /* SECTIONS */
+  .section { display: none; padding: 2.5rem 4rem 4rem; }
+  .section.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  /* METAPHOR CARDS */
+  .metaphor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .m-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .m-card:hover { transform: translateY(-4px); }
+  .m-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; border-radius: 16px 16px 0 0;
+  }
+  .m-card.brain::before { background: var(--accent-brain); }
+  .m-card.brain:hover { box-shadow: 0 12px 40px var(--accent-brain-glow); }
+  .m-card.arms::before { background: var(--accent-arms); }
+  .m-card.arms:hover { box-shadow: 0 12px 40px var(--accent-arms-glow); }
+  .m-card.memory::before { background: var(--accent-memory); }
+  .m-card.memory:hover { box-shadow: 0 12px 40px var(--accent-memory-glow); }
+
+  .m-icon { font-size: 2.25rem; margin-bottom: 1rem; }
+  .m-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .m-subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1rem;
+  }
+  .m-card.brain .m-title, .m-card.brain .m-subtitle { color: var(--accent-brain); }
+  .m-card.arms .m-title, .m-card.arms .m-subtitle { color: var(--accent-arms); }
+  .m-card.memory .m-title, .m-card.memory .m-subtitle { color: var(--accent-memory); }
+
+  .m-desc { color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem; }
+  .m-tech { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .m-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  /* FLOW DIAGRAM */
+  .flow-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    position: relative;
+  }
+  .flow-container + .flow-container { margin-top: 2rem; }
+  .flow-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .flow-desc { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 2rem; }
+
+  .flow-steps {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    position: relative;
+  }
+  .flow-step {
+    flex: 1;
+    text-align: center;
+    padding: 1.5rem 1rem;
+    position: relative;
+  }
+  .flow-step::after {
+    content: '→';
+    position: absolute;
+    right: -8px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    color: var(--text-dim);
+    opacity: 0.4;
+  }
+  .flow-step:last-child::after { display: none; }
+
+  .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.1em;
+  }
+  .step-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 0.75rem;
+    font-size: 1.5rem;
+  }
+  .step-icon.human { background: rgba(225,112,85,0.15); border: 1px solid rgba(225,112,85,0.3); }
+  .step-icon.brain-s { background: rgba(108,92,231,0.15); border: 1px solid rgba(108,92,231,0.3); }
+  .step-icon.arms-s { background: rgba(0,184,148,0.15); border: 1px solid rgba(0,184,148,0.3); }
+  .step-icon.memory-s { background: rgba(253,203,110,0.15); border: 1px solid rgba(253,203,110,0.3); }
+  .step-icon.erp-s { background: rgba(9,132,227,0.15); border: 1px solid rgba(9,132,227,0.3); }
+  .step-icon.ml-s { background: rgba(253,121,168,0.15); border: 1px solid rgba(253,121,168,0.3); }
+  .step-icon.orch-s { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); }
+
+  .step-label { font-size: 0.8rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .step-detail { font-size: 0.72rem; color: var(--text-dim); line-height: 1.5; }
+
+  .parallel-group {
+    position: relative;
+    display: flex;
+    flex: 3;
+    gap: 0;
+  }
+  .parallel-group::before {
+    content: '';
+    position: absolute;
+    top: 8px; bottom: 8px; left: -4px;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent-human), var(--accent-brain), var(--accent-erp));
+    border-radius: 3px;
+    opacity: 0.5;
+  }
+  .parallel-group::after {
+    content: 'PARALELO';
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.15em;
+    color: var(--accent-arms);
+    background: var(--surface);
+    padding: 0.15rem 0.5rem;
+    border: 1px solid rgba(0,184,148,0.3);
+    border-radius: 3px;
+    z-index: 2;
+  }
+  .parallel-group .flow-step { border-left: 1px dashed rgba(0,184,148,0.15); }
+  .parallel-group .flow-step:first-child { border-left: none; }
+
+  .flow-label-tag {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    margin-bottom: 1.25rem;
+  }
+  .flow-label-tag.triagem { background: rgba(253,121,168,0.15); color: var(--accent-pink); border: 1px solid rgba(253,121,168,0.3); }
+  .flow-label-tag.emergencia { background: rgba(225,112,85,0.15); color: var(--accent-human); border: 1px solid rgba(225,112,85,0.3); }
+  .flow-label-tag.coordenacao { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid rgba(255,255,255,0.15); }
+
+  /* ARCHITECTURE TAB */
+  .arch-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    align-items: start;
+  }
+  .layer-label {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+    position: sticky;
+    top: 1rem;
+  }
+  .layer-label .l-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+  .layer-label .l-name { font-size: 0.85rem; font-weight: 700; }
+  .layer-label .l-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.25rem;
+  }
+  .layer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .l-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .l-card:hover {
+    border-color: rgba(253,121,168,0.3);
+    box-shadow: 0 4px 20px rgba(253,121,168,0.08);
+  }
+  .l-card-title {
+    font-size: 0.85rem; font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .l-card-title .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .l-card-body { font-size: 0.78rem; color: var(--text-dim); line-height: 1.6; }
+
+  /* AGENTS TAB */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+  .agent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.75rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: default;
+  }
+  .agent-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .agent-header {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .agent-avatar {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem;
+  }
+  .agent-name { font-size: 1rem; font-weight: 700; }
+  .agent-role {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .agent-body { font-size: 0.82rem; color: var(--text-dim); line-height: 1.65; margin-bottom: 1rem; }
+  .agent-skills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .a-skill {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  /* AGENT COLOR VARIANTS */
+  .ag-triagem .agent-avatar { background: rgba(253,121,168,0.18); }
+  .ag-triagem .agent-name { color: var(--accent-pink); }
+  .ag-triagem .a-skill { background: rgba(253,121,168,0.12); color: var(--accent-pink); }
+
+  .ag-diag .agent-avatar { background: rgba(108,92,231,0.18); }
+  .ag-diag .agent-name { color: var(--accent-brain); }
+  .ag-diag .a-skill { background: rgba(108,92,231,0.12); color: #a29bfe; }
+
+  .ag-leitos .agent-avatar { background: rgba(0,184,148,0.18); }
+  .ag-leitos .agent-name { color: var(--accent-arms); }
+  .ag-leitos .a-skill { background: rgba(0,184,148,0.12); color: #55efc4; }
+
+  .ag-farm .agent-avatar { background: rgba(253,203,110,0.18); }
+  .ag-farm .agent-name { color: var(--accent-memory); }
+  .ag-farm .a-skill { background: rgba(253,203,110,0.12); color: #ffeaa7; }
+
+  .ag-cir .agent-avatar { background: rgba(225,112,85,0.18); }
+  .ag-cir .agent-name { color: var(--accent-human); }
+  .ag-cir .a-skill { background: rgba(225,112,85,0.12); color: #fab1a0; }
+
+  .ag-uti .agent-avatar { background: rgba(9,132,227,0.18); }
+  .ag-uti .agent-name { color: var(--accent-erp); }
+  .ag-uti .a-skill { background: rgba(9,132,227,0.12); color: #74b9ff; }
+
+  .ag-infec .agent-avatar { background: rgba(162,155,254,0.18); }
+  .ag-infec .agent-name { color: #a29bfe; }
+  .ag-infec .a-skill { background: rgba(162,155,254,0.12); color: #a29bfe; }
+
+  .ag-orch .agent-avatar { background: rgba(255,255,255,0.08); border: 1px solid var(--border); }
+  .ag-orch .agent-name { color: var(--text); }
+  .ag-orch .a-skill { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+
+  /* IMPACTO / KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+  }
+  .kpi-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  .kpi-label { font-size: 0.8rem; color: var(--text-dim); }
+
+  /* SECTION HEADING */
+  .section-heading { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .section-desc {
+    font-size: 0.9rem; color: var(--text-dim);
+    margin-bottom: 2rem;
+    max-width: 650px;
+  }
+
+  /* PROBLEMA BOX */
+  .problema-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-human);
+    border-radius: 12px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 2.5rem;
+  }
+  .problema-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--accent-human); }
+  .problema-box p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.7; }
+
+  @media (max-width: 900px) {
+    header, .tab-nav, .section { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .metaphor-grid { grid-template-columns: 1fr; }
+    .arch-row { grid-template-columns: 1fr; }
+    .flow-steps { flex-direction: column; }
+    .flow-step::after { display: none; }
+    .parallel-group { flex-direction: column; }
+    .parallel-group::before { display: none; }
+    .kpi-grid { grid-template-columns: repeat(2,1fr); }
+    h1 { font-size: 1.75rem; }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <div class="logo-line">
+    <div class="logo-dot"></div>
+    <span>MedAI — Ecossistema de Inteligência Hospitalar</span>
+  </div>
+  <h1>Hospital Inteligente: Ecossistema <span>IA Multiagente</span></h1>
+  <p class="subtitle">Decisões mais rápidas, recursos bem alocados e vidas salvas — com agentes que nunca dormem.</p>
+  <br>
+  <h2>Arquitetura, Agentes & Fluxos Clínicos</h2>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="overview">Visão Geral</button>
+  <button class="tab-btn" data-tab="architecture">Arquitetura</button>
+  <button class="tab-btn" data-tab="agents">Agentes</button>
+  <button class="tab-btn" data-tab="impacto">Impacto</button>
+</nav>
+
+<!-- ========== VISÃO GERAL ========== -->
+<section class="section active" id="overview">
+  <div class="section-heading">O Problema que Queremos Resolver</div>
+  <div class="problema-box">
+    <h3>⚠️ O gargalo de decisão nos hospitais</h3>
+    <p>Em situações de alta demanda — epidemias, acidentes em massa, superlotação — os hospitais tomam decisões críticas (quem vai para a UTI, qual leito liberar, qual medicamento priorizar) com base em ligações telefônicas, planilhas manuais e informações fragmentadas entre setores. Isso gera atraso, erro e desperdício de recursos. Um sistema multiagente resolve exatamente isso: cada agente monitora seu domínio em tempo real e coordena com os demais de forma autônoma — sem depender de um único ponto de falha humano.</p>
+  </div>
+
+  <div class="section-heading">As Três Camadas do Ecossistema</div>
+  <p class="section-desc">Analogia com o corpo humano: o ecossistema funciona porque Cérebro, Braços e Memória estão integrados e se retroalimentam continuamente.</p>
+
+  <div class="metaphor-grid">
+    <div class="m-card brain">
+      <div class="m-icon">🧠</div>
+      <div class="m-title">O Cérebro</div>
+      <div class="m-subtitle">Camada Cognitiva</div>
+      <p class="m-desc">Agentes de IA especializados por domínio clínico: triagem, diagnóstico, leitos, farmácia, cirurgias, UTI, infecção e emergências. Cada agente percebe seu ambiente, raciocina e age — ou aciona humanos quando necessário. O Orquestrador coordena os conflitos e garante coerência entre as decisões.</p>
+      <div class="m-tech">
+        <span class="m-tag">LLM Clínico</span>
+        <span class="m-tag">Modelo BDI</span>
+        <span class="m-tag">Visão Computacional</span>
+        <span class="m-tag">ML Preditivo</span>
+      </div>
+    </div>
+    <div class="m-card arms">
+      <div class="m-icon">🦾</div>
+      <div class="m-title">Os Braços</div>
+      <div class="m-subtitle">Camada de Ação</div>
+      <p class="m-desc">A ponte entre decisão e mundo real: acionar alarmes de UTI, dispensar medicamentos, bloquear salas cirúrgicas, notificar equipes via app, acionar protocolos de infecção. Sempre com auditoria e com opção de override humano a qualquer momento.</p>
+      <div class="m-tech">
+        <span class="m-tag">APIs HIS/EHR</span>
+        <span class="m-tag">Automações FHIR</span>
+        <span class="m-tag">Notificações em Tempo Real</span>
+        <span class="m-tag">IoT Hospitalar</span>
+      </div>
+    </div>
+    <div class="m-card memory">
+      <div class="m-icon">💾</div>
+      <div class="m-title">A Memória</div>
+      <div class="m-subtitle">Camada de Dados</div>
+      <p class="m-desc">O Prontuário Eletrônico do Paciente (PEP), dados de sinais vitais em tempo real, histórico de exames, protocolos clínicos e base de conhecimento médico. Sem dados confiáveis e integrados, os agentes não conseguem agir com precisão — é o alicerce de todo o ecossistema.</p>
+      <div class="m-tech">
+        <span class="m-tag">PEP / EHR</span>
+        <span class="m-tag">HL7 FHIR</span>
+        <span class="m-tag">Sensores IoT</span>
+        <span class="m-tag">Data Lake Clínico</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 1: Triagem -->
+  <div class="flow-container">
+    <div class="flow-label-tag triagem">Fluxo 1 — Triagem Inteligente (Pronto-Socorro)</div>
+    <div class="flow-title">Como o agente de triagem classifica e direciona um paciente de entrada</div>
+    <div class="flow-desc">Exemplo: Paciente entra no PS com dor no peito, pressão alta e sudorese. O sistema age em segundos.</div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-num">01</div>
+        <div class="step-icon human">🧑‍⚕️</div>
+        <div class="step-label" style="color:var(--accent-human)">Paciente Chega</div>
+        <div class="step-detail">Recepção registra sintomas no totem ou com enfermeiro. Dados entram no sistema em tempo real</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">02</div>
+        <div class="step-icon ml-s">🔍</div>
+        <div class="step-label" style="color:var(--accent-pink)">Agente de Triagem</div>
+        <div class="step-detail">IA analisa sintomas, sinais vitais e histórico do PEP. Aplica protocolo Manchester e classifica o risco: Vermelho, Laranja, Amarelo, Verde ou Azul</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">03</div>
+        <div class="step-icon memory-s">💾</div>
+        <div class="step-label" style="color:var(--accent-memory)">Consulta PEP</div>
+        <div class="step-detail">Agente verifica histórico: hipertensão prévia, uso de anticoagulantes, alergias, internações anteriores. Ajusta o risco calculado</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">04</div>
+        <div class="step-icon arms-s">🦾</div>
+        <div class="step-label" style="color:var(--accent-arms)">Ação Automática</div>
+        <div class="step-detail">Agente de Leitos é acionado para reservar maca na área cardíaca. Notificação vai ao médico plantonista via app em 8 segundos</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">05</div>
+        <div class="step-icon brain-s">🧠</div>
+        <div class="step-label" style="color:var(--accent-brain)">Agente de Diagnóstico</div>
+        <div class="step-detail">Já sugere pré-hipótese baseada no perfil: "Possível SCA — considere ECG imediato + Troponina" para o médico avaliador</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">06</div>
+        <div class="step-icon human">👨‍⚕️</div>
+        <div class="step-label" style="color:var(--accent-human)">Médico (Decisão Final)</div>
+        <div class="step-detail">Médico recebe o briefing completo, avalia e decide. IA apoiou — a decisão e a responsabilidade são sempre do profissional</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 2: UTI -->
+  <div class="flow-container">
+    <div class="flow-label-tag emergencia">Fluxo 2 — Agente de UTI (Monitoramento Contínuo)</div>
+    <div class="flow-title">Como o agente de UTI antecipa deterioração clínica antes do colapso</div>
+    <div class="flow-desc">Exemplo: Paciente pós-cirúrgico na UTI tem pressão caindo progressivamente durante a madrugada.</div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-num">01</div>
+        <div class="step-icon erp-s">📡</div>
+        <div class="step-label" style="color:var(--accent-erp)">Sensores IoT</div>
+        <div class="step-detail">Monitor cardíaco, oxímetro e ventilador transmitem dados a cada 5 segundos para a plataforma central</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">02</div>
+        <div class="step-icon erp-s">🏥</div>
+        <div class="step-label" style="color:var(--accent-erp)">Agente de UTI</div>
+        <div class="step-detail">Modelo de ML detecta tendência de queda da PAM abaixo de 65 mmHg projetada para os próximos 12 minutos — com 87% de confiança</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">03</div>
+        <div class="step-icon orch-s">🕸️</div>
+        <div class="step-label" style="color:var(--text)">Orquestrador</div>
+        <div class="step-detail">Verifica conflito: Agente de Farmácia informa que vasopressor está disponível no posto. Agente de Leitos confirma sala de procedimento livre</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">04</div>
+        <div class="step-icon ml-s">🚨</div>
+        <div class="step-label" style="color:var(--accent-pink)">Alerta Escalado</div>
+        <div class="step-detail">Alarme prioritário enviado ao médico intensivista com resumo: paciente, tendência, risco, dados dos últimos 30 min e sugestão de conduta</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">05</div>
+        <div class="step-icon human">👨‍⚕️</div>
+        <div class="step-label" style="color:var(--accent-human)">Intensivista (Ação)</div>
+        <div class="step-detail">Médico acessa o app, confirma o alerta e aprova protocolo de suporte hemodinâmico. Farmácia recebe ordem automática de dispensação</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 3: Coordenação de Crise -->
+  <div class="flow-container">
+    <div class="flow-label-tag coordenacao">Fluxo 3 — Coordenação de Crise (Acidente em Massa)</div>
+    <div class="flow-title">Múltiplos agentes em paralelo gerenciam um evento de acidente com múltiplas vítimas</div>
+    <div class="flow-desc">Exemplo: 18 vítimas chegam ao PS após acidente rodoviário. O hospital tem capacidade para 12 pacientes críticos.</div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-num">01</div>
+        <div class="step-icon human">🚑</div>
+        <div class="step-label" style="color:var(--accent-human)">Notificação SAMU</div>
+        <div class="step-detail">SAMU envia pré-aviso com número e gravidade estimada das vítimas. Sistema entra em modo crise imediatamente</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">02</div>
+        <div class="step-icon orch-s">🕸️</div>
+        <div class="step-label" style="color:var(--text)">Orquestrador de Crise</div>
+        <div class="step-detail">Decompõe o problema em 4 frentes simultâneas: leitos, cirurgias, farmácia e transferências. Ativa todos os agentes em paralelo</div>
+      </div>
+
+      <div class="parallel-group">
+        <div class="flow-step">
+          <div class="step-num">03a</div>
+          <div class="step-icon arms-s">🛏️</div>
+          <div class="step-label" style="color:var(--accent-arms)">Agente Leitos</div>
+          <div class="step-detail">Identifica 8 leitos de PS disponíveis, libera 3 da observação e negocia 4 transferências para hospital de retaguarda</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">03b</div>
+          <div class="step-icon brain-s">🔪</div>
+          <div class="step-label" style="color:var(--accent-brain)">Agente Cirurgias</div>
+          <div class="step-detail">Cancela cirurgias eletivas, libera 3 salas e convoca equipes de sobreaviso via notificação automática no app</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">03c</div>
+          <div class="step-icon memory-s">💊</div>
+          <div class="step-label" style="color:var(--accent-memory)">Agente Farmácia</div>
+          <div class="step-detail">Pré-separa kits de trauma, verifica estoque de sangue O- e solicita hemoderivados ao banco de sangue regional</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-num">04</div>
+        <div class="step-icon orch-s">🕸️</div>
+        <div class="step-label" style="color:var(--text)">Orquestrador (Síntese)</div>
+        <div class="step-detail">Consolida capacidade real: 14 vagas disponíveis (8 + 3 liberadas + 3 via transferência). 4 vítimas mais estáveis serão redirecionadas para hospital secundário</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">05</div>
+        <div class="step-icon human">🏥</div>
+        <div class="step-label" style="color:var(--accent-human)">Diretor Clínico</div>
+        <div class="step-detail">Recebe plano completo em tempo real. Aprova com um clique. Todo o processo que levaria 45 min de telefonemas foi resolvido em 90 segundos</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ========== ARQUITETURA ========== -->
+<section class="section" id="architecture">
+  <div class="section-heading">Arquitetura em 4 Camadas</div>
+  <p class="section-desc">Cada camada é independente e escalável. Um novo agente se integra ao ecossistema sem reescrever infraestrutura existente.</p>
+
+  <div class="arch-row">
+    <div class="layer-label">
+      <div class="l-icon">📡</div>
+      <div class="l-name">Camada de Sensores</div>
+      <div class="l-sub">Entrada de Dados</div>
+    </div>
+    <div class="layer-content">
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-erp)"></span>Dispositivos Médicos IoT</div>
+        <div class="l-card-body">Monitores cardíacos, oxímetros, ventiladores mecânicos, bombas de infusão e balanças transmitem dados em tempo real via protocolos HL7 e MQTT. Latência abaixo de 2 segundos.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-pink)"></span>Totens e Terminais</div>
+        <div class="l-card-body">Pontos de entrada de sintomas no PS, tablets à beira do leito para enfermeiros e terminais de farmácia. Interface simplificada para entrada rápida de dados clínicos.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-arms)"></span>Integrações Externas</div>
+        <div class="l-card-body">SAMU, laboratórios externos, banco de sangue regional, CNES (Cadastro Nacional de Estabelecimentos de Saúde) e alertas epidemiológicos da secretaria de saúde.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-memory)"></span>Dados do Cidadão</div>
+        <div class="l-card-body">App hospitalar para agendamentos e monitoramento domiciliar (pós-alta), conectado ao PEP e aos agentes de acompanhamento remoto.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arch-row">
+    <div class="layer-label">
+      <div class="l-icon">💾</div>
+      <div class="l-name">Camada de Dados</div>
+      <div class="l-sub">A Memória</div>
+    </div>
+    <div class="layer-content">
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-pink)"></span>Prontuário Eletrônico (PEP)</div>
+        <div class="l-card-body">Fonte primária de dados clínicos. Histórico de consultas, exames, internações, medicamentos, alergias e diagnósticos. Padrão FHIR R4 para interoperabilidade.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-brain)"></span>Data Lake Clínico</div>
+        <div class="l-card-body">Repositório unificado para dados históricos, features de modelos preditivos, dados de fornecedores de medicamentos e métricas operacionais hospitalares.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-memory)"></span>Base de Conhecimento Médico</div>
+        <div class="l-card-body">Protocolos clínicos atualizados (ANVISA, CFM), diretrizes de infecção hospitalar, tabelas de interação medicamentosa e CID-11. Consultada pelos agentes cognitivos.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-arms)"></span>Datastore Operacional</div>
+        <div class="l-card-body">Estado em tempo real: ocupação de leitos, agenda de cirurgias, estoque de farmácia, escala de profissionais. Atualizado a cada ciclo de decisão dos agentes.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arch-row">
+    <div class="layer-label">
+      <div class="l-icon">🧠</div>
+      <div class="l-name">Camada Cognitiva</div>
+      <div class="l-sub">Os Agentes</div>
+    </div>
+    <div class="layer-content">
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-pink)"></span>Agentes Especializados</div>
+        <div class="l-card-body">8 agentes autônomos por domínio clínico (triagem, diagnóstico, leitos, farmácia, cirurgias, UTI, infecção hospitalar e financeiro). Cada um com modelo BDI e contexto próprio.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-brain)"></span>LLM Clínico</div>
+        <div class="l-card-body">Modelo de linguagem fine-tuned com literatura médica. Processa perguntas em linguagem natural de médicos e enfermeiros, gera sugestões de conduta explicáveis.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-human)"></span>Modelos Preditivos (ML)</div>
+        <div class="l-card-body">Modelos de risco de deterioração clínica (Early Warning Score adaptado), previsão de sepse, previsão de alta, demanda de UTI. Retreinados mensalmente com dados locais.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--text-dim)"></span>Orquestrador Multiagente</div>
+        <div class="l-card-body">Detecta conflitos entre agentes (ex.: dois agentes querendo o mesmo leito), aplica priorização clínica e garante coerência global das decisões em tempo real.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arch-row">
+    <div class="layer-label">
+      <div class="l-icon">👥</div>
+      <div class="l-name">Camada Humana</div>
+      <div class="l-sub">Supervisão e Controle</div>
+    </div>
+    <div class="layer-content">
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-arms)"></span>App Clínico (Mobile)</div>
+        <div class="l-card-body">Interface para médicos e enfermeiros: alertas contextuais, sugestões de conduta, aprovação de ações automáticas e override manual a qualquer momento.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-erp)"></span>Painel de Governança</div>
+        <div class="l-card-body">Dashboard em tempo real para gestores: ocupação, indicadores de qualidade, ações tomadas por agentes, alertas ativos e auditoria de todas as decisões automáticas.</div>
+      </div>
+      <div class="l-card">
+        <div class="l-card-title"><span class="dot" style="background:var(--accent-pink)"></span>App do Paciente</div>
+        <div class="l-card-body">Agendamentos, acompanhamento de exames, comunicação com equipe e monitoramento remoto pós-alta. Dados retroalimentam o PEP e os agentes.</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ========== AGENTES ========== -->
+<section class="section" id="agents">
+  <div class="section-heading">Os 8 Agentes do Ecossistema Hospitalar</div>
+  <p class="section-desc">Cada agente é autônomo dentro do seu domínio e se comunica com os demais via o Orquestrador. A decisão final é sempre do profissional de saúde.</p>
+
+  <div class="agents-grid">
+
+    <div class="agent-card ag-triagem">
+      <div class="agent-header">
+        <div class="agent-avatar">🔍</div>
+        <div>
+          <div class="agent-name">TriageAI</div>
+          <div class="agent-role">Agente de Triagem e Classificação de Risco</div>
+        </div>
+      </div>
+      <div class="agent-body">Classifica pacientes na entrada usando o Protocolo Manchester estendido com ML. Analisa sintomas, sinais vitais e histórico do PEP para definir prioridade de atendimento em segundos. Alimenta automaticamente o Agente de Leitos assim que a classificação é emitida.</div>
+      <div class="agent-skills">
+        <span class="a-skill">Protocolo Manchester</span>
+        <span class="a-skill">NLP de Sintomas</span>
+        <span class="a-skill">Risco Preditivo</span>
+        <span class="a-skill">Integração PEP</span>
+      </div>
+    </div>
+
+    <div class="agent-card ag-diag">
+      <div class="agent-header">
+        <div class="agent-avatar">🧬</div>
+        <div>
+          <div class="agent-name">DiagnosisAI</div>
+          <div class="agent-role">Agente de Suporte ao Diagnóstico</div>
+        </div>
+      </div>
+      <div class="agent-body">Sugere hipóteses diagnósticas e condutas baseadas nos dados clínicos disponíveis, literatura médica e diretrizes atualizadas. Não substitui o médico — apresenta o raciocínio e as evidências para que o profissional decida com mais velocidade e segurança. Solicita exames complementares automaticamente quando indicado.</div>
+      <div class="agent-skills">
+        <span class="a-skill">LLM Clínico</span>
+        <span class="a-skill">CID-11</span>
+        <span class="a-skill">Evidências Clínicas</span>
+        <span class="a-skill">Solicitação de Exames</span>
+      </div>
+    </div>
+
+    <div class="agent-card ag-leitos">
+      <div class="agent-header">
+        <div class="agent-avatar">🛏️</div>
+        <div>
+          <div class="agent-name">BedFlowAI</div>
+          <div class="agent-role">Agente de Gestão de Leitos</div>
+        </div>
+      </div>
+      <div class="agent-body">Monitora a ocupação de todos os leitos em tempo real e otimiza o fluxo de pacientes. Prevê altas com antecedência usando ML para liberar leitos proativamente. Em situações de lotação, negocia transferências com hospitais de retaguarda automaticamente, consultando o CNES e capacidades disponíveis.</div>
+      <div class="agent-skills">
+        <span class="a-skill">Previsão de Alta</span>
+        <span class="a-skill">Otimização de Fluxo</span>
+        <span class="a-skill">Regulação CNES</span>
+        <span class="a-skill">Tempo Real</span>
+      </div>
+    </div>
+
+    <div class="agent-card ag-farm">
+      <div class="agent-header">
+        <div class="agent-avatar">💊</div>
+        <div>
+          <div class="agent-name">PharmaAI</div>
+          <div class="agent-role">Agente de Farmácia Clínica</div>
+        </div>
+      </div>
+      <div class="agent-body">Gerencia estoque de medicamentos, detecta interações medicamentosas perigosas antes da dispensação e alerta sobre alergias registradas no PEP. Em situações de emergência, pré-separa kits de trauma e aciona reposição automática junto a fornecedores. Garante rastreabilidade completa de cada dispensação.</div>
+      <div class="agent-skills">
+        <span class="a-skill">Interações Medicamentosas</span>
+        <span class="a-skill">Gestão de Estoque</span>
+        <span class="a-skill">Alerta de Alergias</span>
+        <span class="a-skill">Rastreabilidade</span>
+      </div>
+    </div>
+
+    <div class="agent-card ag-cir">
+      <div class="agent-header">
+        <div class="agent-avatar">🔪</div>
+        <div>
+          <div class="agent-name">SurgeonAI</div>
+          <div class="agent-role">Agente de Agendamento Cirúrgico</div>
+        </div>
+      </div>
+      <div class="agent-body">Otimiza a agenda de salas cirúrgicas considerando duração estimada, equipe disponível, equipamentos necessários e prioridade clínica. Em crises, cancela cirurgias eletivas de forma ordenada e reconvoca equipes de sobreaviso. Minimiza tempo ocioso de sala, que representa alto custo hospitalar.</div>
+      <div class="agent-skills">
+        <span class="a-skill">Otimização de Agenda</span>
+        <span class="a-skill">Gestão de Equipes</span>
+        <span class="a-skill">Priorização Clínica</span>
+        <span class="a-skill">Convocação Automática</span>
+      </div>
+    </div>
+
+    <div class="agent-card ag-uti">
+      <div class="agent-header">
+        <div class="agent-avatar">📊</div>
+        <div>
+          <div class="agent-name">ICU-WatchAI</div>
+          <div class="agent-role">Agente de Monitoramento de UTI</div>
+        </div>
+      </div>
+      <div class="agent-body">Analisa continuamente os sinais vitais de todos os pacientes da UTI em paralelo. Usa modelos preditivos para detectar deterioração clínica horas antes do colapso — incluindo risco de sepse, instabilidade hemodinâmica e falência respiratória. Emite alertas escalonados baseados no grau de urgência detectado.</div>
+      <div class="agent-skills">
+        <span class="a-skill">Early Warning Score</span>
+        <span class="a-skill">Predição de Sepse</span>
+        <span class="a-skill">Monitoramento 24/7</span>
+        <span class="a-skill">Alerta Graduado</span>
+      </div>
+    </div>
+
+    <div class="agent-card ag-infec">
+      <div class="agent-header">
+        <div class="agent-avatar">🦠</div>
+        <div>
+          <div class="agent-name">InfectoGuardAI</div>
+          <div class="agent-role">Agente de Controle de Infecção Hospitalar</div>
+        </div>
+      </div>
+      <div class="agent-body">Monitora padrões de infecção hospitalar e detecta surtos precocemente analisando culturas, antibiogramas e dados epidemiológicos em tempo real. Aciona protocolos de isolamento, restrição de antibióticos e notificação à vigilância epidemiológica automaticamente quando limites são ultrapassados.</div>
+      <div class="agent-skills">
+        <span class="a-skill">Vigilância Epidemiológica</span>
+        <span class="a-skill">Detecção de Surtos</span>
+        <span class="a-skill">Protocolo de Isolamento</span>
+        <span class="a-skill">Antibiograma</span>
+      </div>
+    </div>
+
+    <div class="agent-card ag-orch">
+      <div class="agent-header">
+        <div class="agent-avatar">🕸️</div>
+        <div>
+          <div class="agent-name">MedOrchestrator</div>
+          <div class="agent-role">Orquestrador Clínico Central</div>
+        </div>
+      </div>
+      <div class="agent-body">O único agente que enxerga todos os outros simultaneamente. Resolve conflitos de recursos (dois agentes querendo o mesmo leito), prioriza com base em criticidade clínica, garante coerência das decisões e escala alertas para humanos quando o problema ultrapassa os limites de cada agente. É o maestro do ecossistema.</div>
+      <div class="agent-skills">
+        <span class="a-skill">Resolução de Conflitos</span>
+        <span class="a-skill">Priorização Sistêmica</span>
+        <span class="a-skill">Escalada Humana</span>
+        <span class="a-skill">Auditoria Global</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========== IMPACTO ========== -->
+<section class="section" id="impacto">
+  <div class="section-heading">Impacto Esperado para a Comunidade</div>
+  <p class="section-desc">Os benefícios de um ecossistema multiagente hospitalar vão além da tecnologia — se traduzem diretamente em vidas, tempo e recursos.</p>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:var(--accent-pink)">−45%</div>
+      <div class="kpi-label">Tempo médio de triagem no PS</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:var(--accent-arms)">−30%</div>
+      <div class="kpi-label">Eventos de deterioração clínica não detectada a tempo</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:var(--accent-brain)">+22%</div>
+      <div class="kpi-label">Giro de leitos por mês com previsão de alta inteligente</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:var(--accent-memory)">−18%</div>
+      <div class="kpi-label">Desperdício de medicamentos por vencimento ou erro</div>
+    </div>
+  </div>
+
+  <div class="agents-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px,1fr));">
+    <div class="agent-card" style="border-left: 2px solid var(--accent-pink);">
+      <div class="m-icon">🚑</div>
+      <div class="agent-name" style="color:var(--accent-pink); margin-bottom:0.5rem;">Pronto-Socorro</div>
+      <div class="agent-body">Redução do tempo de espera para pacientes de risco vermelho, prevenindo mortes evitáveis por atraso de atendimento. Triagem mais justa, baseada em risco clínico e não em ordem de chegada.</div>
+    </div>
+    <div class="agent-card" style="border-left: 2px solid var(--accent-erp);">
+      <div class="m-icon">🏥</div>
+      <div class="agent-name" style="color:var(--accent-erp); margin-bottom:0.5rem;">UTI e Pacientes Críticos</div>
+      <div class="agent-body">Detecção precoce de deterioração significa intervenção antes do colapso. Pacientes que hoje entram em parada poderiam ter sido estabilizados horas antes com alertas preditivos.</div>
+    </div>
+    <div class="agent-card" style="border-left: 2px solid var(--accent-arms);">
+      <div class="m-icon">👨‍⚕️</div>
+      <div class="agent-name" style="color:var(--accent-arms); margin-bottom:0.5rem;">Profissionais de Saúde</div>
+      <div class="agent-body">Menos tempo perdido em tarefas administrativas (buscar leito, checar estoque, ligar para outros setores). Mais tempo para o que importa: cuidar do paciente e tomar decisões clínicas de qualidade.</div>
+    </div>
+    <div class="agent-card" style="border-left: 2px solid var(--accent-memory);">
+      <div class="m-icon">🏛️</div>
+      <div class="agent-name" style="color:var(--accent-memory); margin-bottom:0.5rem;">Gestão e Sistema de Saúde</div>
+      <div class="agent-body">Uso mais eficiente de recursos públicos ou privados. Dados de auditoria para gestores e órgãos reguladores. Resposta mais rápida a epidemias com detecção precoce de surtos hospitalares.</div>
+    </div>
+    <div class="agent-card" style="border-left: 2px solid var(--accent-brain);">
+      <div class="m-icon">🧑‍🦽</div>
+      <div class="agent-name" style="color:var(--accent-brain); margin-bottom:0.5rem;">Paciente e Família</div>
+      <div class="agent-body">Mais transparência sobre o atendimento via app, menor tempo de espera, maior segurança na dispensação de medicamentos e acompanhamento inteligente pós-alta para reduzir reinternações.</div>
+    </div>
+    <div class="agent-card" style="border-left: 2px solid var(--accent-human);">
+      <div class="m-icon">🌆</div>
+      <div class="agent-name" style="color:var(--accent-human); margin-bottom:0.5rem;">Comunidade em Crise</div>
+      <div class="agent-body">Em eventos como epidemias, acidentes em massa ou desastres, a capacidade de coordenar automaticamente leitos, cirurgias e farmácia em segundos pode determinar quem sobrevive quando os recursos são escassos.</div>
+    </div>
+  </div>
+
+  <div class="flow-container" style="margin-top:2rem; border-left: 3px solid var(--accent-brain);">
+    <div class="flow-title">⚠️ O que mantém o Humano no Controle</div>
+    <div class="flow-desc" style="margin-bottom:0">Todo agente opera no modelo <strong style="color:var(--text)">Human-in-the-Loop</strong>: nenhuma ação crítica é executada sem aprovação de um profissional de saúde. Os agentes recomendam, alertam e preparam — mas a responsabilidade clínica e legal permanece sempre com o médico ou enfermeiro. O sistema é auditável, explicável e pode ser overrideado a qualquer momento. Isso não é burocracia: é a base ética de qualquer IA aplicada à saúde.</div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
